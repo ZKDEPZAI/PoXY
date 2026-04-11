@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELTA PROXY - CHECK SYSTEM</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        * { box-sizing: border-box; transition: 0.3s; }
+        body { background-color: #0b0f1a; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; min-height: 100vh; align-items: center; }
+        .wrapper { width: 100%; max-width: 400px; background: #161b2c; border-radius: 30px; padding: 25px; border: 1px solid #2d364f; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
+        h1 { font-style: italic; font-size: 32px; background: linear-gradient(to bottom, #fff, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+        .status { color: #4ade80; font-size: 12px; text-align: center; margin-bottom: 25px; margin-top: 5px; }
+        
+        .tabs { display: flex; background: #0f172a; border-radius: 15px; padding: 5px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; font-size: 14px; color: #64748b; cursor: pointer; text-align: center; border-radius: 12px; }
+        .tab.active { background: #1e293b; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        .input-section { margin-bottom: 20px; text-align: left; }
+        label { font-size: 11px; color: #64748b; margin-left: 10px; text-transform: uppercase; }
+        input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 15px; color: #38bdf8; text-align: center; font-weight: bold; font-size: 16px; margin-top: 5px; outline: none; }
+        input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+        
+        .btn-main { width: 100%; padding: 16px; background: linear-gradient(90deg, #38bdf8, #818cf8); border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4); margin-top: 15px; }
+        .btn-main:active { transform: scale(0.95); }
+
+        .download-list { margin-top: 25px; border-top: 1px dashed #334155; padding-top: 20px; display: none; }
+        .item { background: #1e293b; padding: 15px; border-radius: 18px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
+        .item-info span { display: block; font-size: 14px; font-weight: bold; color: #38bdf8; }
+        .item-info small { color: #64748b; font-size: 11px; }
+        .get-link { color: #38bdf8; text-decoration: none; font-size: 12px; font-weight: bold; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 10px; border: 1px solid #38bdf8; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h1>POXYPRO</h1>
+    <div class="status">● HỆ THỐNG ĐANG HOẠT ĐỘNG</div>
+
+    <div class="tabs">
+        <div class="tab active">XÁC MINH KEY</div>
+    </div>
+
+    <div class="input-section">
+        <label>Vui lòng nhập License Key</label>
+        <input type="text" id="userKey" placeholder="DELTA-XXXXXXX">
+        <button class="btn-main" onclick="checkKey()">TIẾP TỤC KIỂM TRA →</button>
+    </div>
+
+    <div id="downloadArea" class="download-list">
+        <p style="text-align: center; font-size: 10px; color: #475569; letter-spacing: 2px; margin-bottom: 15px;">TẢI XUỐNG DÀNH CHO THÀNH VIÊN</p>
+        
+        <div class="item">
+            <div class="item-info">
+                <span>AIMLOCK V1</span>
+                <small>Bản ổn định nhất</small>
+            </div>
+            <a href="LINK_CỦA_BẠN_Ở_ĐÂY" class="get-link">TẢI VỀ 📥</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cấu hình Firebase của bạn
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMMg5mmBczaHIKYGitE1ksq6KOGrxGy_8",
+        authDomain: "aimlock-9e6bf.firebaseapp.com",
+        projectId: "aimlock-9e6bf",
+        databaseURL: "https://aimlock-9e6bf-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function checkKey() {
+        const key = document.getElementById('userKey').value.trim();
+        if(!key) { alert("Bạn chưa nhập mã!"); return; }
+
+        // Tạo HWID đơn giản từ trình duyệt
+        const deviceID = btoa(navigator.userAgent).substring(0, 16);
+
+        db.ref('keys/' + key).once('value', (snap) => {
+            if (snap.exists()) {
+                const data = snap.val();
+                const now = Date.now();
+
+                // 1. Kiểm tra hạn dùng
+                if (now > data.expiry) {
+                    alert("Key này đã hết hạn!");
+                    return;
+                }
+
+                // 2. Kiểm tra HWID (Khóa thiết bị)
+                if (!data.hwid || data.hwid === "") {
+                    // Nếu key mới, khóa vào máy này luôn
+                    db.ref('keys/' + key).update({ hwid: deviceID });
+                    alert("Kích hoạt thành công trên thiết bị này!");
+                    document.getElementById('downloadArea').style.display = 'block';
+                } else if (data.hwid === deviceID) {
+                    alert("Xác minh thành công!");
+                    document.getElementById('downloadArea').style.display = 'block';
+                } else {
+                    alert("Lỗi: Key này đã được sử dụng trên máy khác!");
+                }
+            } else {
+                alert("Mã Key không hợp lệ hoặc đã bị xóa!");
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
