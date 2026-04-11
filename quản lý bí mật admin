@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN PANEL - DELTA</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .card { width: 100%; max-width: 450px; background: #1e293b; padding: 25px; border-radius: 20px; border: 1px solid #334155; }
+        h2 { color: #38bdf8; text-align: center; margin-bottom: 20px; }
+        label { font-size: 12px; color: #94a3b8; }
+        input { width: 100%; padding: 12px; margin: 8px 0 20px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #4ade80; font-weight: bold; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; background: linear-gradient(90deg, #0ea5e9, #2563eb); }
+        .key-list { margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px; }
+        .item { background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 10px; position: relative; border-left: 4px solid #38bdf8; }
+        .del-btn { position: absolute; right: 10px; top: 10px; color: #ef4444; font-size: 12px; cursor: pointer; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 6px; }
+        small { color: #94a3b8; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>QUẢN LÝ KEY</h2>
+        <label>Số ngày sử dụng:</label>
+        <input type="number" id="days" value="1">
+        <button class="btn" onclick="generateKey()">🎲 TẠO KEY NGẪU NHIÊN</button>
+
+        <div class="key-list" id="keyList">
+            <p style="text-align: center; color: #475569;">Đang tải danh sách...</p>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMMg5mmBczaHIKYGitE1ksq6KOGrxGy_8",
+            authDomain: "aimlock-9e6bf.firebaseapp.com",
+            projectId: "aimlock-9e6bf",
+            databaseURL: "https://aimlock-9e6bf-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function generateKey() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let res = "";
+            for (let i = 0; i < 8; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+            const keyName = "DELTA-" + res;
+            const d = document.getElementById('days').value;
+            const exp = Date.now() + (d * 24 * 60 * 60 * 1000);
+
+            db.ref('keys/' + keyName).set({
+                expiry: exp,
+                hwid: "",
+                status: "active"
+            }).then(() => alert("Đã tạo thành công: " + keyName));
+        }
+
+        db.ref('keys').on('value', (snap) => {
+            let h = "";
+            snap.forEach((c) => {
+                let d = c.val();
+                let time = new Date(d.expiry).toLocaleDateString("vi-VN");
+                let device = d.hwid ? "❌ Đã khóa máy" : "✅ Chưa dùng";
+                h += `<div class="item">
+                        <b>${c.key}</b> <span class="del-btn" onclick="del('${c.key}')">XÓA</span><br>
+                        <small>Hạn: ${time} | ${device}</small>
+                      </div>`;
+            });
+            document.getElementById('keyList').innerHTML = h || "Chưa có key nào";
+        });
+
+        function del(k) { if(confirm("Xóa key này?")) db.ref('keys/' + k).remove(); }
+    </script>
+</body>
+</html>
