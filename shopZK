@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>ZK STORE - Proxy & Game Mod Menu</title>
+    <meta name="description" content="Hệ thống Proxy game tự động, nạp tiền và nhận sản phẩm nhanh."/>
+    
+    <!-- Google Fonts & Tailwind & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+        :root {
+            --font-space-grotesk: 'Space Grotesk', sans-serif;
+            --font-orbitron: 'Orbitron', sans-serif;
+            --electric-teal: #30bbaf;
+            --electric-teal-glow: rgba(48, 187, 175, 0.4);
+            --deep-void: #0b0e17;
+            --deep-void-black: #05070b;
+        }
+
+        body {
+            font-family: var(--font-space-grotesk);
+            background-color: var(--deep-void-black);
+            color: #ffffff;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding-bottom: 80px;
+        }
+
+        .orbitron-text { font-family: var(--font-orbitron); }
+        .glow-text-teal { text-shadow: 0 0 12px var(--electric-teal-glow), 0 0 25px rgba(48, 187, 175, 0.2); }
+
+        .bg-background-grid {
+            background-image: linear-gradient(rgba(48, 187, 175, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(48, 187, 175, 0.02) 1px, transparent 1px);
+            background-size: 25px 25px;
+        }
+
+        .cyber-clip {
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+        }
+
+        .product-card {
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--electric-teal);
+            box-shadow: 0 10px 25px rgba(48, 187, 175, 0.15);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .bottom-nav-item.active {
+            color: var(--electric-teal);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .package-btn.selected {
+            background-color: var(--electric-teal);
+            color: black;
+            border-color: var(--electric-teal);
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+
+    <div class="fixed inset-0 z-0 bg-background-grid opacity-70 pointer-events-none"></div>
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0b0e17]/90 backdrop-blur-md" id="mainHeader">
+        <div class="container mx-auto flex items-center justify-between px-4 py-3">
+            <a class="flex items-center gap-2 group cursor-pointer" onclick="switchTab('shop')">
+                <div class="bg-teal-500/20 p-1.5 rounded-lg border border-teal-500/30 text-electric-teal flex items-center justify-center font-black">
+                    <i class="fa-solid fa-gamepad text-lg"></i>
+                </div>
+                <span class="orbitron-text text-xl font-black tracking-wider text-white">
+                    ZK <span class="text-electric-teal">STORE</span>
+                </span>
+            </a>
+            
+            <div id="headerAuthArea" class="flex items-center gap-2">
+                <button onclick="openModal('loginModal')" class="border border-white/20 hover:border-electric-teal px-3 py-1.5 rounded text-xs font-bold text-white transition cursor-pointer cyber-clip bg-black/40">
+                    ĐĂNG NHẬP
+                </button>
+                <button onclick="openModal('registerModal')" class="bg-electric-teal text-black px-3 py-1.5 rounded text-xs font-black transition cursor-pointer cyber-clip">
+                    ĐĂNG KÝ
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 relative z-10 container mx-auto px-4 py-4">
+
+        <!-- TAB 1: SHOP -->
+        <div id="tab-shop" class="tab-content active space-y-6">
+            <!-- Hero Banner (Đã thay ảnh nền thành IMG-3916.jpg) -->
+            <div class="relative w-full overflow-hidden rounded-xl border border-teal-500/20 bg-gradient-to-r from-black via-zinc-900 to-black p-6 shadow-2xl">
+                <div class="absolute inset-0 opacity-40 bg-cover bg-center" style="background-image: url('https://i.ibb.co/yBFkbsQM/IMG-3916.jpg')"></div>
+                <div class="relative z-10 max-w-lg space-y-3">
+                    <div class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-electric-teal text-black px-2.5 py-1 rounded shadow">
+                        👑 VERIFIED SELLER • Siêu Uy Tín 2026
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white glow-text-teal orbitron-text">PROXY VIP VN</h1>
+                    <p class="text-xs sm:text-sm text-gray-200 font-mono border-l-2 border-electric-teal pl-3">Hệ thống phân phối Proxy game tự động, bảo mật tuyệt đối, uptime 100%.</p>
+                    
+                    <div class="grid grid-cols-3 gap-2 pt-2">
+                        <div class="bg-black/80 border border-white/10 p-2.5 rounded text-center">
+                            <p class="text-[9px] font-mono text-gray-400 uppercase">Đã Bán</p>
+                            <p class="text-xs font-black text-white orbitron-text">2,500+</p>
+                        </div>
+                        <div class="bg-black/80 border border-white/10 p-2.5 rounded text-center">
+                            <p class="text-[9px] font-mono text-gray-400 uppercase">Đánh Giá</p>
+                            <p class="text-xs font-black text-white orbitron-text">4.9 / 5.0</p>
+                        </div>
+                        <div class="bg-black/80 border border-white/10 p-2.5 rounded text-center">
+                            <p class="text-[9px] font-mono text-gray-400 uppercase">Phản Hồi</p>
+                            <p class="text-xs font-black text-white orbitron-text">&lt; 5 phút</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <a href="#proxy-list-section" class="flex-1 bg-electric-teal text-black text-center font-black uppercase text-xs py-2.5 rounded shadow hover:bg-white transition">Vào Shop Ngay</a>
+                        <button onclick="switchTab('nap')" class="flex-1 border border-teal-500/40 bg-black/50 text-white text-center font-bold uppercase text-xs py-2.5 rounded hover:bg-teal-500/20 transition">Nạp Tiền</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANH MỤC SẢN PHẨM -->
+            <div id="proxy-list-section" class="space-y-6">
+                <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <h2 class="text-lg font-black italic uppercase tracking-tighter text-white orbitron-text">SẢN PHẨM & MENU <span class="text-electric-teal">SIÊU UY TÍN</span></h2>
+                    <span class="text-xs font-mono text-electric-teal cursor-pointer">Cập nhật 2026</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- 1. LIÊN QUÂN -->
+                    <div class="product-card bg-[#0d1117] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="h-28 rounded-lg mb-3 bg-cover bg-center border border-white/5 relative overflow-hidden" style="background-image: url('https://i.ibb.co/bRmCNGT7/IMG-3913.jpg')">
+                                <span class="absolute top-2 right-2 bg-electric-teal text-black text-[9px] font-black px-1.5 py-0.5 rounded">SIÊU HOT</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-white mb-1">LIÊN QUÂN - MAP SÁNG S1 VIP</h3>
+                            <p class="text-[11px] text-gray-400 font-mono mb-2">Bản chuẩn duy nhất, chống văng, vẽ bản đồ mượt mà.</p>
+                            
+                            <button onclick="openMenuModal('lq')" class="w-full mb-3 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-electric-teal font-bold text-[11px] py-1.5 rounded transition cursor-pointer">
+                                <i class="fa-solid fa-eye mr-1"></i> Xem Chi Tiết Menu Liên Quân
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 mb-3" id="pkg-lq-map">
+                                <button onclick="selectPackage('lq-map', '1 Tuần', 50000)" class="package-btn selected bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tuần (50k)</button>
+                                <button onclick="selectPackage('lq-map', '1 Tháng', 150000)" class="package-btn bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tháng (150k)</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-electric-teal font-black text-sm orbitron-text" id="price-lq-map">50,000đ</span>
+                            <button onclick="buyProxyProduct('LIÊN QUÂN - MAP SÁNG S1 VIP', 'lq-map')" class="bg-electric-teal text-black font-black text-[10px] uppercase px-3 py-2 rounded hover:bg-white transition cursor-pointer">MUA NGAY</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. FREE FIRE - AIMDRAG -->
+                    <div class="product-card bg-[#0d1117] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="h-28 rounded-lg mb-3 bg-cover bg-center border border-white/5 relative overflow-hidden" style="background-image: url('https://i.ibb.co/S7XvgWVq/IMG-3912.jpg')">
+                                <span class="absolute top-2 right-2 bg-blue-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded">FF V1</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-white mb-1">FREE FIRE - AIMDRAG VIP</h3>
+                            <p class="text-[11px] text-gray-400 font-mono mb-2">Hỗ trợ kéo tâm cực nhạy, ghim đầu mượt mà.</p>
+                            
+                            <button onclick="openMenuModal('ff_aimdrag')" class="w-full mb-3 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-electric-teal font-bold text-[11px] py-1.5 rounded transition cursor-pointer">
+                                <i class="fa-solid fa-eye mr-1"></i> Xem Menu Aimdrag
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 mb-3" id="pkg-ff-aimdrag">
+                                <button onclick="selectPackage('ff-aimdrag', '1 Tuần', 40000)" class="package-btn selected bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tuần (40k)</button>
+                                <button onclick="selectPackage('ff-aimdrag', '1 Tháng', 120000)" class="package-btn bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tháng (120k)</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-electric-teal font-black text-sm orbitron-text" id="price-ff-aimdrag">40,000đ</span>
+                            <button onclick="buyProxyProduct('FREE FIRE - AIMDRAG VIP', 'ff-aimdrag')" class="bg-electric-teal text-black font-black text-[10px] uppercase px-3 py-2 rounded hover:bg-white transition cursor-pointer">MUA NGAY</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. FREE FIRE - AIMBODY -->
+                    <div class="product-card bg-[#0d1117] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="h-28 rounded-lg mb-3 bg-cover bg-center border border-white/5 relative overflow-hidden" style="background-image: url('https://i.ibb.co/S7XvgWVq/IMG-3912.jpg')">
+                                <span class="absolute top-2 right-2 bg-purple-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">FF V2</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-white mb-1">FREE FIRE - AIMBODY PRO</h3>
+                            <p class="text-[11px] text-gray-400 font-mono mb-2">Khoá tâm thân người chính xác, chống lệch tâm.</p>
+                            
+                            <button onclick="openMenuModal('ff_aimbody')" class="w-full mb-3 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-electric-teal font-bold text-[11px] py-1.5 rounded transition cursor-pointer">
+                                <i class="fa-solid fa-eye mr-1"></i> Xem Menu Aimbody
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 mb-3" id="pkg-ff-aimbody">
+                                <button onclick="selectPackage('ff-aimbody', '1 Tuần', 45000)" class="package-btn selected bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tuần (45k)</button>
+                                <button onclick="selectPackage('ff-aimbody', '1 Tháng', 130000)" class="package-btn bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tháng (130k)</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-electric-teal font-black text-sm orbitron-text" id="price-ff-aimbody">45,000đ</span>
+                            <button onclick="buyProxyProduct('FREE FIRE - AIMBODY PRO', 'ff-aimbody')" class="bg-electric-teal text-black font-black text-[10px] uppercase px-3 py-2 rounded hover:bg-white transition cursor-pointer">MUA NGAY</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. FREE FIRE - AIM MAGIC -->
+                    <div class="product-card bg-[#0d1117] border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="h-28 rounded-lg mb-3 bg-cover bg-center border border-white/5 relative overflow-hidden" style="background-image: url('https://i.ibb.co/S7XvgWVq/IMG-3912.jpg')">
+                                <span class="absolute top-2 right-2 bg-emerald-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded">FF V3</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-white mb-1">FREE FIRE - AIM MAGIC BULLET</h3>
+                            <p class="text-[11px] text-gray-400 font-mono mb-2">Viên đạn ma thuật uốn cong góc bắn tiêu diệt địch.</p>
+                            
+                            <button onclick="openMenuModal('ff_magic')" class="w-full mb-3 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-electric-teal font-bold text-[11px] py-1.5 rounded transition cursor-pointer">
+                                <i class="fa-solid fa-eye mr-1"></i> Xem Menu Aim Magic
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 mb-3" id="pkg-ff-magic">
+                                <button onclick="selectPackage('ff-magic', '1 Tuần', 60000)" class="package-btn selected bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tuần (60k)</button>
+                                <button onclick="selectPackage('ff-magic', '1 Tháng', 180000)" class="package-btn bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tháng (180k)</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-electric-teal font-black text-sm orbitron-text" id="price-ff-magic">60,000đ</span>
+                            <button onclick="buyProxyProduct('FREE FIRE - AIM MAGIC BULLET', 'ff-magic')" class="bg-electric-teal text-black font-black text-[10px] uppercase px-3 py-2 rounded hover:bg-white transition cursor-pointer">MUA NGAY</button>
+                        </div>
+                    </div>
+
+                    <!-- 5. FREE FIRE - ANTENA + CỔ -->
+                    <div class="product-card bg-[#0d1117] border border-white/10 rounded-xl p-4 flex flex-col justify-between sm:col-span-2">
+                        <div>
+                            <div class="h-28 rounded-lg mb-3 bg-cover bg-center border border-white/5 relative overflow-hidden" style="background-image: url('https://i.ibb.co/S7XvgWVq/IMG-3912.jpg')">
+                                <span class="absolute top-2 right-2 bg-amber-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded">FF V4</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-white mb-1">FREE FIRE - ANTENA + KÉO DÀI CỔ</h3>
+                            <p class="text-[11px] text-gray-400 font-mono mb-2">Định vị tầm nhìn xa cực rộng, hiển thị vị trí toàn bản đồ.</p>
+                            
+                            <button onclick="openMenuModal('ff_antena')" class="w-full mb-3 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-electric-teal font-bold text-[11px] py-1.5 rounded transition cursor-pointer">
+                                <i class="fa-solid fa-eye mr-1"></i> Xem Menu Antena + Cổ
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-2 mb-3 max-w-md mx-auto" id="pkg-ff-antena">
+                                <button onclick="selectPackage('ff-antena', '1 Tuần', 35000)" class="package-btn selected bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tuần (35k)</button>
+                                <button onclick="selectPackage('ff-antena', '1 Tháng', 100000)" class="package-btn bg-black border border-white/20 text-xs font-mono py-1.5 rounded text-center cursor-pointer">1 Tháng (100k)</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-electric-teal font-black text-sm orbitron-text" id="price-ff-antena">35,000đ</span>
+                            <button onclick="buyProxyProduct('FREE FIRE - ANTENA + KÉO DÀI CỔ', 'ff-antena')" class="bg-electric-teal text-black font-black text-[10px] uppercase px-3 py-2 rounded hover:bg-white transition cursor-pointer">MUA NGAY</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SELLER -->
+        <div id="tab-seller" class="tab-content space-y-4 max-w-lg mx-auto">
+            <div class="bg-[#0d1117] border border-electric-teal/30 rounded-xl p-5 text-center space-y-4 shadow-xl relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-cover bg-center" style="background-image: url('https://i.ibb.co/yBFkbsQM/IMG-3916.jpg')"></div>
+                <div class="relative z-10 space-y-3">
+                    <div class="w-24 h-24 mx-auto rounded-full border-2 border-electric-teal p-1 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(48,187,175,0.4)]">
+                        <i class="fa-solid fa-shield-cat text-4xl text-electric-teal"></i>
+                    </div>
+                    <h2 class="text-xl font-black orbitron-text text-white">PROXY VIP VN</h2>
+                    <p class="text-xs text-gray-300 font-mono">Hệ thống phân phối Proxy và Mod Menu chuyên nghiệp hàng đầu. Bảo mật tuyệt đối, tốc độ cao.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: NẠP TIỀN -->
+        <div id="tab-nap" class="tab-content space-y-4 max-w-md mx-auto">
+            <div class="bg-[#0d1117] border border-white/10 rounded-xl p-5 shadow-xl space-y-4">
+                <h2 class="text-base font-black orbitron-text text-white text-center">SỐ TIỀN CẦN NẠP (VND)</h2>
+                
+                <div class="space-y-3">
+                    <div class="relative">
+                        <input type="number" id="inputDepositAmount" min="10000" max="5000000" value="50000" class="w-full bg-black border border-white/20 rounded-lg px-4 py-3 text-lg font-black text-white outline-none focus:border-electric-teal font-mono">
+                        <span class="absolute right-4 top-3.5 text-gray-400 font-bold">đ</span>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setDepositAmount(50000)" class="bg-black hover:bg-electric-teal hover:text-black border border-white/20 py-2.5 rounded text-xs font-bold transition cursor-pointer">50k</button>
+                        <button onclick="setDepositAmount(100000)" class="bg-black hover:bg-electric-teal hover:text-black border border-white/20 py-2.5 rounded text-xs font-bold transition cursor-pointer">100k</button>
+                        <button onclick="setDepositAmount(200000)" class="bg-black hover:bg-electric-teal hover:text-black border border-white/20 py-2.5 rounded text-xs font-bold transition cursor-pointer">200k</button>
+                        <button onclick="setDepositAmount(500000)" class="bg-black hover:bg-electric-teal hover:text-black border border-white/20 py-2.5 rounded text-xs font-bold transition cursor-pointer">500k</button>
+                    </div>
+
+                    <button onclick="createDepositRequest()" class="w-full bg-electric-teal text-black font-black uppercase text-xs py-3.5 rounded-lg shadow-[0_0_15px_rgba(48,187,175,0.3)] hover:bg-white transition cursor-pointer">
+                        <i class="fa-solid fa-qrcode mr-1"></i> TẠO YÊU CẦU NẠP
+                    </button>
+                </div>
+
+                <div id="qrContainer" class="mt-4 pt-4 border-t border-white/10 text-center" style="display: none;">
+                    <div class="bg-white p-2 rounded-lg inline-block mb-3">
+                        <img id="vietQrImg" src="" alt="QR" class="w-40 h-40 object-contain">
+                    </div>
+                    <p class="text-xs text-gray-300 font-mono mb-1">STK Admin: <strong class="text-electric-teal">103880313862</strong> (ICB)</p>
+                    <div class="bg-teal-500/10 border border-dashed border-teal-500 p-2 rounded text-xs font-mono text-electric-teal mb-3">
+                        Nội dung chuyển khoản: <span id="syntaxText" class="font-black">---</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ĐƠN HÀNG -->
+        <div id="tab-don" class="tab-content space-y-4 max-w-md mx-auto">
+            <div class="bg-[#0d1117] border border-white/10 rounded-xl p-5 space-y-4">
+                <h2 class="text-base font-black orbitron-text text-white">Lịch Sử Mua Hàng & Key</h2>
+                <div class="bg-black/40 border border-white/10 p-3 rounded-lg space-y-2">
+                    <label class="block text-xs font-mono text-gray-400">Tra cứu Key</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchKeyInput" placeholder="Nhập tên sản phẩm..." class="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-electric-teal font-mono">
+                        <button onclick="searchOrders()" class="bg-electric-teal text-black font-bold px-4 py-2 rounded text-xs uppercase cursor-pointer">Tìm</button>
+                    </div>
+                </div>
+                <div id="orderListContainer" class="space-y-3">
+                    <p class="text-xs text-gray-400 font-mono text-center py-4">Chưa có giao dịch nào.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: HỖ TRỢ -->
+        <div id="tab-hotro" class="tab-content space-y-4 max-w-md mx-auto">
+            <div class="bg-[#0d1117] border border-white/10 p-5 rounded-xl text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-teal-500/20 text-electric-teal flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h2 class="text-base font-black orbitron-text text-white">Hỗ Trợ 24/7</h2>
+                <a href="https://zalo.me/0335759558" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-electric-teal text-black font-black uppercase text-xs py-3 rounded-lg shadow-lg hover:bg-white transition">
+                    <i class="fa-solid fa-phone-volume"></i> Zalo: 0335759558
+                </a>
+            </div>
+        </div>
+
+        <!-- TAB 6: TÀI KHOẢN -->
+        <div id="tab-taikhoan" class="tab-content space-y-4 max-w-md mx-auto">
+            <div id="guestAccountView" class="bg-[#0d1117] border border-white/10 p-5 rounded-xl text-center space-y-3">
+                <p class="text-xs text-gray-300 font-mono">Bạn chưa đăng nhập vào hệ thống.</p>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="openModal('loginModal')" class="bg-electric-teal text-black font-black text-xs px-4 py-2 rounded cursor-pointer">Đăng Nhập</button>
+                    <button onclick="openModal('registerModal')" class="bg-white/10 text-white font-black text-xs px-4 py-2 rounded cursor-pointer">Đăng Ký</button>
+                </div>
+            </div>
+            <div id="userAccountView" class="space-y-4" style="display: none;">
+                <div class="bg-[#0d1117] border border-white/10 p-5 rounded-xl space-y-3">
+                    <div class="flex items-center gap-3 border-b border-white/10 pb-3">
+                        <div class="w-10 h-10 rounded-full bg-teal-500/20 text-electric-teal flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 font-mono">Tài khoản</p>
+                            <p class="text-sm font-black text-white" id="accUsernameDisplay">---</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center text-xs font-mono">
+                        <span class="text-gray-400">Số dư hiện tại:</span>
+                        <span class="text-electric-teal font-black text-base orbitron-text" id="accBalanceDisplay">0 đ</span>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-xs py-2.5 rounded hover:bg-red-500 hover:text-white transition cursor-pointer">
+                    Đăng Xuất Tài Khoản
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#070a10] border-t border-white/10 z-40 flex justify-around py-2 px-1">
+        <button onclick="switchTab('shop')" class="bottom-nav-item active flex flex-col items-center flex-1 py-1 text-gray-400 hover:text-electric-teal transition cursor-pointer" id="nav-btn-shop">
+            <i class="fa-solid fa-box-open text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">SHOP</span>
+        </button>
+        <button onclick="switchTab('seller')" class="bottom-nav-item flex flex-col items-center flex-1 py-1 text-gray-400 hover:text-electric-teal transition cursor-pointer" id="nav-btn-seller">
+            <i class="fa-solid fa-shield-halved text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">SELLER</span>
+        </button>
+        <button onclick="switchTab('nap')" class="bottom-nav-item flex flex-col items-center flex-1 py-1 text-gray-400 hover:text-electric-teal transition cursor-pointer" id="nav-btn-nap">
+            <i class="fa-solid fa-credit-card text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">NẠP</span>
+        </button>
+        <button onclick="switchTab('don')" class="bottom-nav-item flex flex-col items-center flex-1 py-1 text-gray-400 hover:text-electric-teal transition cursor-pointer" id="nav-btn-don">
+            <i class="fa-solid fa-file-lines text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">ĐƠN</span>
+        </button>
+        <button onclick="switchTab('hotro')" class="bottom-nav-item flex flex-col items-center flex-1 py-1 text-gray-400 hover:text-electric-teal transition cursor-pointer" id="nav-btn-hotro">
+            <i class="fa-solid fa-headset text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">HỖ TRỢ</span>
+        </button>
+    </nav>
+
+    <!-- MODAL MENU CHI TIẾT -->
+    <div id="menuDetailModal" class="modal-overlay">
+        <div class="bg-[#121620] border border-teal-500/40 rounded-xl w-full max-w-2xl overflow-hidden relative shadow-2xl">
+            <div class="bg-black/90 px-4 py-3 border-b border-white/10 flex justify-between items-center">
+                <span id="menuModalTitle" class="text-xs font-black uppercase text-electric-teal orbitron-text"><i class="fa-solid fa-gamepad mr-1"></i> Bảng Menu VIP</span>
+                <button onclick="closeModal('menuDetailModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div id="menuModalBody" class="p-4 space-y-4 max-h-[75vh] overflow-y-auto text-xs font-mono">
+                <!-- Nội dung được dynamic load -->
+            </div>
+
+            <div class="bg-black/90 px-4 py-3 border-t border-white/10 text-right">
+                <button onclick="closeModal('menuDetailModal')" class="bg-electric-teal text-black font-bold px-4 py-1.5 rounded text-xs cursor-pointer">Đóng Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP & ĐĂNG KÝ -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="bg-[#0d1117] border border-white/10 p-5 rounded-xl w-full max-w-xs relative">
+            <button onclick="closeModal('loginModal')" class="absolute top-3 right-3 text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-sm font-black orbitron-text mb-3 text-white">ĐĂNG NHẬP ZK STORE</h3>
+            <form onsubmit="handleLogin(event)" class="space-y-3">
+                <input type="text" id="loginUser" placeholder="Tên tài khoản" required class="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-electric-teal">
+                <input type="password" id="loginPass" placeholder="Mật khẩu" required class="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-electric-teal">
+                <button type="submit" class="w-full bg-electric-teal text-black font-black text-xs py-2 rounded uppercase cursor-pointer">Đăng Nhập</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal-overlay">
+        <div class="bg-[#0d1117] border border-white/10 p-5 rounded-xl w-full max-w-xs relative">
+            <button onclick="closeModal('registerModal')" class="absolute top-3 right-3 text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-sm font-black orbitron-text mb-3 text-white">ĐĂNG KÝ TÀI KHOẢN</h3>
+            <form onsubmit="handleRegister(event)" class="space-y-3">
+                <input type="text" id="regUser" placeholder="Tên tài khoản mới" required class="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-electric-teal">
+                <input type="password" id="regPass" placeholder="Mật khẩu" required class="w-full bg-black border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-electric-teal">
+                <button type="submit" class="w-full bg-electric-teal text-black font-black text-xs py-2 rounded uppercase cursor-pointer">Đăng Ký Ngay</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let dbUsers = JSON.parse(localStorage.getItem('zk_store_users_v5')) || {};
+        let currentUser = localStorage.getItem('zk_store_logged_v5') || null;
+        let dbOrders = JSON.parse(localStorage.getItem('zk_store_orders_v5')) || [];
+
+        let selectedPackages = {
+            'lq-map': { name: '1 Tuần', price: 50000 },
+            'ff-aimdrag': { name: '1 Tuần', price: 40000 },
+            'ff-aimbody': { name: '1 Tuần', price: 45000 },
+            'ff-magic': { name: '1 Tuần', price: 60000 },
+            'ff-antena': { name: '1 Tuần', price: 35000 }
+        };
+
+        function selectPackage(productId, pkgName, price) {
+            selectedPackages[productId] = { name: pkgName, price: price };
+            document.getElementById('price-' + productId).innerText = price.toLocaleString() + 'đ';
+            
+            const container = document.getElementById('pkg-' + productId);
+            container.querySelectorAll('button').forEach(btn => {
+                if (btn.innerText.includes(pkgName)) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        function setDepositAmount(amount) {
+            document.getElementById('inputDepositAmount').value = amount;
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openMenuModal(type) {
+            const titleEl = document.getElementById('menuModalTitle');
+            const bodyEl = document.getElementById('menuModalBody');
+
+            if (type === 'lq') {
+                titleEl.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Liên Quân Mobile (S1) - Map Sáng`;
+                bodyEl.innerHTML = `
+                    <div class="bg-black/60 p-3 rounded border border-teal-500/20 space-y-2">
+                        <p class="font-bold text-electric-teal uppercase text-[10px]">Tính năng bản đồ</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Vẽ ESP Toàn Bản Đồ</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Hiện Hồi Chiêu Địch</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Sáng Vùng Rừng</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Ẩn Menu An Toàn</label>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'ff_aimdrag') {
+                titleEl.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Free Fire - Aimdrag VIP`;
+                bodyEl.innerHTML = `
+                    <div class="bg-black/60 p-3 rounded border border-teal-500/20 space-y-2">
+                        <p class="font-bold text-electric-teal uppercase text-[10px]">Tùy Chỉnh Aimdrag</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Kéo Tâm Siêu Nhạy</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Bám Đầu Địch</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Chống Lệch Tâm</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Giảm Giật Súng</label>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'ff_aimbody') {
+                titleEl.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Free Fire - Aimbody Pro`;
+                bodyEl.innerHTML = `
+                    <div class="bg-black/60 p-3 rounded border border-teal-500/20 space-y-2">
+                        <p class="font-bold text-electric-teal uppercase text-[10px]">Tùy Chỉnh Aimbody</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Khóa Tâm Thân</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Tự Động Bắt Mục Tiêu</label>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'ff_magic') {
+                titleEl.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Free Fire - Aim Magic Bullet`;
+                bodyEl.innerHTML = `
+                    <div class="bg-black/60 p-3 rounded border border-teal-500/20 space-y-2">
+                        <p class="font-bold text-electric-teal uppercase text-[10px]">Tùy Chỉnh Magic Bullet</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Uốn Cong Đường Đạn</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="accent-teal-400"> Bắn Xuyên Góc Tường</label>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'ff_antena') {
+                titleEl.innerHTML = `<i class="fa-solid fa-gamepad mr-1"></i> Free Fire - Antena + Kéo Dài Cổ`;
+                bodyEl.innerHTML = `
+                    <div class="bg-black/60 p-3 rounded border border-teal-500/20 space-y-2">
+                        <p class="font-bold text-electric-teal uppercase text-[10px]">Tùy Chỉnh Antena & Cổ</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Antena Tầm Nhìn Xa</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-teal-400"> Kéo Dài Cổ Địch</label>
+                        </div>
+                    </div>
+                `;
+            }
+            openModal('menuDetailModal');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            const mapNav = { 'shop': 0, 'seller': 1, 'nap': 2, 'don': 3, 'hotro': 4 };
+            if (mapNav[tabName] !== undefined) {
+                const items = document.querySelectorAll('.bottom-nav-item');
+                if (items[mapNav[tabName]]) items[mapNav[tabName]].classList.add('active');
+            }
+
+            if (tabName === 'don') renderOrders();
+            if (tabName === 'taikhoan') updateUIAuth();
+        }
+
+        window.onload = function() { updateUIAuth(); };
+
+        function updateUIAuth() {
+            if (currentUser && dbUsers[currentUser]) {
+                document.getElementById('headerAuthArea').innerHTML = `
+                    <div onclick="switchTab('taikhoan')" class="flex items-center gap-2 bg-[#161b22] border border-electric-teal/40 px-3 py-1 rounded-full cursor-pointer">
+                        <span class="text-xs font-bold text-white">${currentUser}</span>
+                        <span class="text-[10px] text-electric-teal font-mono">${dbUsers[currentUser].balance.toLocaleString()}đ</span>
+                    </div>
+                `;
+                document.getElementById('guestAccountView').style.display = 'none';
+                document.getElementById('userAccountView').style.display = 'block';
+                document.getElementById('accUsernameDisplay').innerText = currentUser;
+                document.getElementById('accBalanceDisplay').innerText = dbUsers[currentUser].balance.toLocaleString() + " đ";
+            } else {
+                document.getElementById('headerAuthArea').innerHTML = `
+                    <button onclick="openModal('loginModal')" class="border border-white/25 hover:border-electric-teal px-3 py-1.5 rounded text-xs font-bold text-white transition cursor-pointer cyber-clip bg-black/40">ĐĂNG NHẬP</button>
+                    <button onclick="openModal('registerModal')" class="bg-electric-teal text-black px-3 py-1.5 rounded text-xs font-black transition cursor-pointer cyber-clip">ĐĂNG KÝ</button>
+                `;
+                document.getElementById('guestAccountView').style.display = 'block';
+                document.getElementById('userAccountView').style.display = 'none';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const u = document.getElementById('regUser').value.trim();
+            const p = document.getElementById('regPass').value;
+            if (dbUsers[u]) { alert("Tài khoản đã tồn tại!"); return; }
+            dbUsers[u] = { pass: p, balance: 20000, syntax: "ZK" + u.toUpperCase().replace(/[^A-Z0-9]/g, '') + Math.floor(100 + Math.random() * 900) };
+            localStorage.setItem('zk_store_users_v5', JSON.stringify(dbUsers));
+            alert("Đăng ký thành công! Tặng kèm 20k vào tài khoản.");
+            closeModal('registerModal');
+            openModal('loginModal');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+            if (!dbUsers[u] || dbUsers[u].pass !== p) { alert("Sai tài khoản hoặc mật khẩu!"); return; }
+            currentUser = u;
+            localStorage.setItem('zk_store_logged_v5', u);
+            updateUIAuth();
+            closeModal('loginModal');
+            alert("Đăng nhập thành công!");
+        }
+
+        function logout() {
+            localStorage.removeItem('zk_store_logged_v5');
+            currentUser = null;
+            updateUIAuth();
+            switchTab('shop');
+        }
+
+        function createDepositRequest() {
+            if (!currentUser) { alert("Vui lòng đăng nhập!"); openModal('loginModal'); return; }
+            const amount = parseInt(document.getElementById('inputDepositAmount').value);
+            if (isNaN(amount) || amount < 10000) { alert("Nhập số tiền từ 10.000đ trở lên!"); return; }
+            const userData = dbUsers[currentUser];
+            const qrUrl = `https://img.vietqr.io/image/ICB-103880313862-compact2.png?amount=${amount}&addInfo=${userData.syntax}&accountName=LO%20DUONG%20TU`;
+            document.getElementById('vietQrImg').src = qrUrl;
+            document.getElementById('syntaxText').innerText = userData.syntax;
+            document.getElementById('qrContainer').style.display = 'block';
+            alert("Đã tạo yêu cầu nạp tiền!");
+        }
+
+        function buyProxyProduct(baseName, productKey) {
+            if (!currentUser) { alert("Vui lòng đăng nhập!"); openModal('loginModal'); return; }
+            const pkg = selectedPackages[productKey];
+            const fullName = `${baseName} (${pkg.name})`;
+            const price = pkg.price;
+            const user = dbUsers[currentUser];
+            if (user.balance < price) { alert("Số dư không đủ!"); switchTab('nap'); return; }
+            if (confirm(`Xác nhận mua [${fullName}] với giá ${price.toLocaleString()}đ?`)) {
+                user.balance -= price;
+                localStorage.setItem('zk_store_users_v5', JSON.stringify(dbUsers));
+                updateUIAuth();
+                const licenseKey = "ZK-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+                dbOrders.unshift({ user: currentUser, item: fullName, price: price, key: licenseKey, time: new Date().toLocaleString() });
+                localStorage.setItem('zk_store_orders_v5', JSON.stringify(dbOrders));
+                alert(`🎉 Mua hàng thành công!\nKey của bạn: ${licenseKey}`);
+                switchTab('don');
+            }
+        }
+
+        function renderOrders(filterText = '') {
+            const container = document.getElementById('orderListContainer');
+            const myOrders = dbOrders.filter(o => o.user === currentUser);
+            if (myOrders.length === 0) { container.innerHTML = `<p class="text-xs text-gray-400 font-mono text-center py-4">Chưa có giao dịch.</p>`; return; }
+            let filtered = filterText ? myOrders.filter(o => o.item.toLowerCase().includes(filterText.toLowerCase()) || o.key.toLowerCase().includes(filterText.toLowerCase())) : myOrders;
+            container.innerHTML = filtered.map(ord => `
+                <div class="bg-black/50 border border-white/10 p-3 rounded-lg space-y-1.5 font-mono text-xs">
+                    <div class="flex justify-between text-white font-bold"><span>${ord.item}</span><span class="text-electric-teal">${ord.price.toLocaleString()}đ</span></div>
+                    <div class="text-[10px] text-gray-400">Thời gian: ${ord.time}</div>
+                    <div class="bg-teal-500/10 border border-teal-500/30 p-2 rounded flex justify-between items-center">
+                        <span class="text-electric-teal font-black">Key: ${ord.key}</span>
+                        <button onclick="navigator.clipboard.writeText('${ord.key}'); alert('Đã copy Key!');" class="bg-electric-teal text-black px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Copy</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchOrders() { renderOrders(document.getElementById('searchKeyInput').value.trim()); }
+    </script>
+</body>
+</html>
