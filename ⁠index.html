@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZKDEPZAI Profile - Independent Draggable Buttons</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0b0f;
+            --text-color: #ffffff;
+            --container-bg: #121218;
+            --card-bg: #181822;
+            --border-color: #282838;
+            --badge-bg: #1c1c27;
+            --text-muted: #9ca3af;
+            --sidebar-bg: #14141c;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f0f2f5;
+            --text-color: #1f2937;
+            --container-bg: #ffffff;
+            --card-bg: #f9fafb;
+            --border-color: #e5e7eb;
+            --badge-bg: #f3f4f6;
+            --text-muted: #6b7280;
+            --sidebar-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 400px;
+            height: 750px;
+            background-color: var(--container-bg);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 4px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .main-app {
+            height: 100%;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            padding-bottom: 85px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
+        .time-badge { background-color: var(--badge-bg); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 30px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .time-badge i { color: #fbbf24; }
+
+        .menu-btn, .user-auth-btn {
+            background-color: var(--badge-bg); border: 1px solid var(--border-color);
+            width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 16px; color: var(--text-color);
+        }
+
+        .profile-section { text-align: center; padding: 5px 20px; }
+        .avatar-container { width: 110px; height: 110px; margin: 0 auto 15px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #4f46e5, #9333ea); }
+        .avatar-container img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .username-tag { background-color: var(--badge-bg); border: 1px solid var(--border-color); display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+        .main-name { font-size: 26px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .main-name i { color: #3b82f6; font-size: 20px; }
+        .role { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .user-status-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            margin: 0 20px 15px; padding: 12px 18px; border-radius: 16px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 14px;
+        }
+
+        .stats-box { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; margin: 0 20px; padding: 15px 10px; display: flex; justify-content: space-around; text-align: center; }
+        .stat-value { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+        .stat-label { font-size: 11px; color: var(--text-muted); }
+
+        .content-section { padding: 20px; }
+        .section-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-title { font-size: 18px; font-weight: 700; }
+        
+        .admin-add-btn { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; display: none; }
+        .admin-add-btn.show { display: inline-block; }
+
+        .mod-card { 
+            background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; 
+            padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; 
+            margin-bottom: 12px; text-decoration: none; color: inherit; position: relative;
+        }
+        .mod-left { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
+        .mod-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; flex-shrink: 0; }
+        .mod-info { display: flex; flex-direction: column; overflow: hidden; }
+        .mod-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .mod-sub-info { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .mod-sub-info .dot { width: 5px; height: 5px; background: #3b82f6; border-radius: 50%; display: inline-block; }
+
+        .mod-badges { display: flex; gap: 6px; align-items: center; }
+        .badge-tag { background: var(--badge-bg); border: 1px solid var(--border-color); padding: 3px 10px; border-radius: 15px; font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+        .badge-tag i { color: #3b82f6; font-size: 10px; }
+
+        .download-btn-v2 {
+            background: #1d4ed8; color: white; border: none; width: 48px; height: 48px; border-radius: 16px;
+            display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3); text-decoration: none;
+        }
+
+        .delete-btn-abs {
+            position: absolute; top: 8px; right: 8px; background: #ef4444; color: white; border: none; 
+            padding: 2px 6px; border-radius: 6px; cursor: pointer; font-size: 10px; display: none; z-index: 5;
+        }
+        .delete-btn-abs.show { display: block; }
+
+        .page-view { display: none; padding: 20px; }
+        .page-view.active { display: block; }
+        .link-item-box { background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .link-item-box a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+
+        .sidebar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+        .sidebar {
+            position: absolute; top: 0; right: -100%; width: 85%; height: 100%;
+            background-color: var(--sidebar-bg); border-left: 1px solid var(--border-color);
+            z-index: 201; display: flex; flex-direction: column; transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; flex-shrink: 0; }
+        
+        .sidebar-menu { 
+            list-style: none; 
+            flex: 1; 
+            overflow-y: auto; 
+            padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+        .sidebar-menu::-webkit-scrollbar { width: 4px; }
+        .sidebar-menu::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .sidebar-menu li { margin-bottom: 6px; }
+        .sidebar-menu a, .sidebar-menu button {
+            width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px;
+            color: var(--text-color); background: none; border: none; text-align: left;
+            text-decoration: none; font-size: 14px; border-radius: 10px; cursor: pointer;
+        }
+        .sidebar-menu a:hover, .sidebar-menu button:hover { background-color: var(--badge-bg); }
+        .admin-menu-item { display: none !important; color: #3b82f6 !important; font-weight: 600; background: rgba(59, 130, 246, 0.1); }
+        .admin-menu-item.show { display: flex !important; }
+
+        /* 2 NÚT ĐỘC LẬP RIÊNG BIỆT - CÓ THỂ KÉO THẢ DI CHUYỂN TỰ DO */
+        .draggable-element {
+            position: absolute;
+            z-index: 90;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .draggable-element:active { cursor: grabbing; }
+
+        #draggableMusic {
+            bottom: 20px;
+            left: 15px;
+            display: flex; 
+            align-items: center; 
+            gap: 6px;
+            background: rgba(18, 18, 24, 0.85);
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12); 
+            border-radius: 30px;
+            padding: 4px 10px 4px 4px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .music-disc {
+            width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex; justify-content: center; align-items: center; color: white; font-size: 11px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .music-disc.playing { animation: rotateDisc 3s linear infinite; }
+        @keyframes rotateDisc { 100% { transform: rotate(360deg); } }
+        
+        .music-title-mini { 
+            font-size: 11px; 
+            font-weight: 600; 
+            max-width: 90px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            color: var(--text-color); 
+            cursor: pointer; 
+        }
+
+        .music-control-btn {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; border: none;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center;
+            align-items: center; cursor: pointer; font-size: 11px; flex-shrink: 0;
+        }
+
+        #draggableZalo {
+            bottom: 20px;
+            right: 15px;
+        }
+
+        .chat-bubble {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; color: white; font-size: 18px;
+            background: #0068ff; text-decoration: none; 
+            box-shadow: 0 4px 15px rgba(0,104,255,0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .welcome-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b0b0f; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 20px;
+            transition: opacity 0.5s ease;
+        }
+        .welcome-overlay.fade-out { opacity: 0; pointer-events: none; }
+        
+        .welcome-avatar-wrap {
+            width: 120px; height: 120px; border-radius: 50%; padding: 4px;
+            background: linear-gradient(135deg, #3b82f6, #9333ea);
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.4); margin-bottom: 20px;
+            position: relative; display: flex; justify-content: center; align-items: center;
+        }
+        .welcome-avatar-wrap img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        
+        .welcome-title { font-size: 24px; font-weight: 700; color: white; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .welcome-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 25px; }
+        
+        .loading-bar-container {
+            width: 160px; height: 4px; background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px; overflow: hidden; margin-bottom: 20px;
+        }
+        .loading-bar-fill {
+            width: 40%; height: 100%; background: #ffffff; border-radius: 10px;
+            animation: loadingMove 1.5s infinite ease-in-out;
+        }
+        @keyframes loadingMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+        }
+
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 300;
+            display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: var(--container-bg); border: 1px solid var(--border-color); width: 88%; max-height: 85vh; overflow-y: auto; padding: 20px; border-radius: 20px; text-align: center; }
+        .modal-input { width: 100%; padding: 10px 14px; margin-bottom: 10px; background: var(--badge-bg); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-color); outline: none; font-size: 13px; }
+        .modal-btn { width: 100%; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .modal-switch { margin-top: 12px; font-size: 12px; color: var(--text-muted); cursor: pointer; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-avatar-wrap">
+            <img src="https://i.ibb.co/8gDv0BSm/IMG-4026.jpg" alt="Logo">
+        </div>
+        <div class="welcome-title">ZKDEPZAI MOD</div>
+        <div class="welcome-sub" id="welcomeStatusSub">Đang khởi động hệ thống...</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar-fill"></div>
+        </div>
+        <button id="startWebBtn" style="display: none; padding: 10px 25px; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; border: none; border-radius: 30px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);">Vào Web Ngay</button>
+    </div>
+
+    <div class="phone-container">
+        <div class="main-app" id="mainAppContainer">
+            <div class="header-bar">
+                <div class="time-badge">
+                    <span>Xin chào!</span>
+                    <i class="fa-solid fa-sun" id="timeIcon"></i>
+                    <span id="clock">00:00:00</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="user-auth-btn" id="openAuthBtn"><i class="fa-solid fa-user-shield"></i></button>
+                    <button class="menu-btn" id="openMenuBtn"><i class="fa-solid fa-bars"></i></button>
+                </div>
+            </div>
+
+            <div id="homeView" class="page-view active">
+                <div class="profile-section">
+                    <div class="avatar-container"><img src="https://i.ibb.co/8gDv0BSm/IMG-4026.jpg" alt="Avatar"></div>
+                    <div class="username-tag">ZKDEPZAI</div>
+                    <div class="main-name">ZKDEPZAI <i class="fa-solid fa-circle-check"></i></div>
+                    <div class="role">Top Developer & System Admin</div>
+                </div>
+
+                <div class="user-status-card" id="userStatusCard">
+                    <span>Tài khoản: <b>Khách</b></span>
+                    <span style="color: #60a5fa; cursor: pointer;" id="inlineAuthLink">Đăng nhập ngay</span>
+                </div>
+
+                <div class="stats-box">
+                    <div><div class="stat-value">500M+</div><div class="stat-label">Lượt tải</div></div>
+                    <div><div class="stat-value">2026</div><div class="stat-label">Cập nhật</div></div>
+                    <div><div class="stat-value">#1</div><div class="stat-label">Platform</div></div>
+                </div>
+
+                <div class="content-section">
+                    <div class="section-header-flex">
+                        <div class="section-title">Game Mods Nổi Bật</div>
+                        <button class="admin-add-btn" id="addShopBtn"><i class="fa-solid fa-plus"></i> Thêm</button>
+                    </div>
+                    <div id="shopListContainer"></div>
+                </div>
+            </div>
+
+            <div id="taigameView" class="page-view">
+                <div class="section-header-flex"><div class="section-title">Danh Sách Tải Game</div></div>
+                <div id="gameModListContainer"></div>
+            </div>
+
+            <div id="getkeyView" class="page-view">
+                <div class="section-header-flex">
+                    <div class="section-title">Hệ Thống Get Key</div>
+                    <button class="admin-add-btn" id="addKeyBtn"><i class="fa-solid fa-plus"></i> Thêm</button>
+                </div>
+                <div id="keyListContainer"></div>
+            </div>
+
+            <div id="filemodView" class="page-view">
+                <div class="section-header-flex">
+                    <div class="section-title">Kho File Mod</div>
+                    <button class="admin-add-btn" id="addFileBtn"><i class="fa-solid fa-plus"></i> Thêm</button>
+                </div>
+                <div id="fileListContainer"></div>
+            </div>
+
+            <div id="videoView" class="page-view">
+                <div class="section-header-flex">
+                    <div class="section-title">Video Hướng Dẫn</div>
+                    <button class="admin-add-btn" id="addVideoBtn"><i class="fa-solid fa-plus"></i> Thêm</button>
+                </div>
+                <div id="videoListContainer"></div>
+            </div>
+
+            <div id="contactView" class="page-view">
+                <div class="section-header-flex"><div class="section-title">Liên Hệ Hỗ Trợ</div></div>
+                <div class="link-item-box">
+                    <span>Zalo Admin: 0335759558</span>
+                    <a href="https://zalo.me/0335759558" target="_blank">Nhắn ngay</a>
+                </div>
+            </div>
+
+            <!-- NÚT NHẠC ĐỘC LẬP - KÉO THẢ RIÊNG -->
+            <div class="draggable-element" id="draggableMusic">
+                <div class="music-mini-dock" style="display: flex; align-items: center; gap: 6px;">
+                    <div class="music-disc" id="musicDisc" title="Đĩa quay nhạc">
+                        <i class="fa-solid fa-music"></i>
+                    </div>
+                    <span class="music-title-mini" id="currentMusicTitle" title="Bấm để đổi tên">Lofi Chill</span>
+                    <button class="music-control-btn" id="musicToggleBtn" title="Phát / Dừng">
+                        <i class="fa-solid fa-play" id="mainPlayIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- NÚT ZALO ĐỘC LẬP - KÉO THẢ RIÊNG -->
+            <div class="draggable-element" id="draggableZalo">
+                <a href="https://zalo.me/0335759558" target="_blank" class="chat-bubble" title="Hỗ trợ Zalo">
+                    <i class="fa-solid fa-headset"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <h3 id="sidebarUsername" style="font-size: 16px;">Khách</h3>
+                    <p style="font-size: 11px; color: var(--text-muted);" id="sidebarRole">Chưa đăng nhập</p>
+                </div>
+                <button class="menu-btn" id="closeMenuBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" data-page="homeView"><i class="fa-solid fa-house"></i> Trang Chủ</a></li>
+                <li><a href="#" data-page="taigameView"><img src="image_13.png" style="width:16px;height:16px;object-fit:contain;"> Tải Game</a></li>
+                <li><a href="#" data-page="getkeyView"><i class="fa-solid fa-key"></i> Get Key</a></li>
+                <li><a href="#" data-page="filemodView"><i class="fa-solid fa-file-zipper"></i> File Mod</a></li>
+                <li><a href="#" data-page="videoView"><i class="fa-solid fa-video"></i> Video Hướng Dẫn</a></li>
+                <li><a href="#" data-page="contactView"><i class="fa-solid fa-comments"></i> Liên Hệ</a></li>
+                <li><button class="admin-menu-item" id="adminMusicMenuBtn"><i class="fa-solid fa-compact-disc"></i> Cài Đặt Nhạc & Giọng Nói</button></li>
+                <li><button class="admin-menu-item" id="adminViewUsersBtn"><i class="fa-solid fa-users-gear"></i> Quản Lý Tài Khoản</button></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <h3 id="authModalTitle" style="margin-bottom: 12px; font-size: 16px;">Đăng Nhập</h3>
+            <form id="authForm">
+                <input type="text" id="userInput" class="modal-input" placeholder="Tên tài khoản" required>
+                <input type="password" id="passInput" class="modal-input" placeholder="Mật khẩu" required>
+                <button type="submit" class="modal-btn" id="authSubmitBtn">Xác Nhận</button>
+            </form>
+            <div class="modal-switch" id="switchAuthMode">Chưa có tài khoản? Đăng ký ngay</div>
+            <div class="modal-switch" style="color: #ef4444;" id="closeAuthModal">Đóng</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="usersModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 12px; font-size: 16px;">Danh Sách Tài Khoản Đã Đăng Ký</h3>
+            <div id="usersListContainer" style="margin-bottom: 15px; text-align: left; max-height: 250px; overflow-y: auto;"></div>
+            <div class="modal-switch" style="color: #ef4444;" id="closeUsersModal">Đóng</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="musicModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 12px; font-size: 16px; color: #3b82f6;"><i class="fa-solid fa-shield-halved"></i> Cấu Hình Âm Thanh (Admin Only)</h3>
+            
+            <div style="text-align: left; margin-bottom: 12px; background: var(--badge-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">1. Tệp nhạc nền (Chọn nhiều file cùng lúc):</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <label for="audioFileInput" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #3b82f6; font-weight: 600;">Chọn tệp nhạc</label>
+                    <span id="audioFileNameDisplay" style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">chưa chọn tệp nào</span>
+                    <input type="file" id="audioFileInput" multiple style="display: none;">
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Danh sách tệp nhạc trong hệ thống:</div>
+                <div id="adminPlaylistContainer" style="max-height: 100px; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; text-align: left;"></div>
+            </div>
+
+            <div style="text-align: left; background: var(--badge-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">2. Tệp giọng nói chào mừng (Chọn nhiều file cùng lúc):</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <label for="welcomeVoiceFileInput" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #3b82f6; font-weight: 600;">Chọn tệp giọng</label>
+                    <span id="voiceFileNameDisplay" style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">chưa chọn tệp nào</span>
+                    <input type="file" id="welcomeVoiceFileInput" multiple style="display: none;">
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;">Danh sách giọng nói đã tải:</div>
+                <div id="adminVoiceListContainer" style="max-height: 80px; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; text-align: left;"></div>
+            </div>
+
+            <button class="modal-btn" id="saveAllAudioBtn" style="background: #10b981; margin-bottom: 8px; padding: 10px; font-weight: 600;">Lưu Tất Cả Cấu Hình</button>
+            <div class="modal-switch" style="color: #ef4444;" id="closeMusicModal">Đóng</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="generalModal">
+        <div class="modal-box">
+            <h3 id="generalModalTitle" style="margin-bottom: 12px; font-size: 16px;">Thêm Mục Mới</h3>
+            <input type="text" id="genTitle" class="modal-input" placeholder="Tiêu đề / Tên game">
+            <input type="text" id="genDesc" class="modal-input" placeholder="Mô tả phụ (hoặc số lượng preview, ví dụ: 3)">
+            <input type="text" id="genDate" class="modal-input" placeholder="Ngày cập nhật (Ví dụ: 7/8)">
+            
+            <div style="text-align: left; margin-bottom: 10px; background: var(--badge-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);" id="genImageContainer">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">Chọn Icon Game từ kho ảnh:</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="genImageFile" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #3b82f6; font-weight: 600;">Chọn ảnh icon</label>
+                    <span id="genImageNameDisplay" style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">chưa chọn ảnh</span>
+                    <input type="file" id="genImageFile" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <input type="text" id="genLink" class="modal-input" placeholder="Đường dẫn liên kết / Tải">
+            <button class="modal-btn" id="saveGenBtn">Thêm Ngay</button>
+            <div class="modal-switch" style="color: #ef4444;" id="closeGenModal">Đóng</div>
+        </div>
+    </div>
+
+    <script>
+        // --- HỆ THỐNG KÉO THẢ RIÊNG BIỆT CHO TỪNG NÚT ---
+        function makeElementDraggable(elm) {
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+            const phoneContainer = document.querySelector('.phone-container');
+
+            function getClientCoords(e) {
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function onDragStart(e) {
+                if (e.target.closest('#musicToggleBtn') || e.target.closest('.chat-bubble') || e.target.closest('.music-disc') || e.target.closest('#currentMusicTitle')) {
+                    return;
+                }
+                
+                isDragging = true;
+                elm.style.transition = 'none';
+
+                const coords = getClientCoords(e);
+                startX = coords.x;
+                startY = coords.y;
+
+                const rect = elm.getBoundingClientRect();
+                const parentRect = phoneContainer.getBoundingClientRect();
+
+                if (!elm.style.position || elm.style.position !== 'absolute') {
+                    elm.style.position = 'absolute';
+                    elm.style.left = (rect.left - parentRect.left) + 'px';
+                    elm.style.top = (rect.top - parentRect.top) + 'px';
+                    elm.style.bottom = 'auto';
+                    elm.style.right = 'auto';
+                }
+
+                initialLeft = parseFloat(elm.style.left) || (rect.left - parentRect.left);
+                initialTop = parseFloat(elm.style.top) || (rect.top - parentRect.top);
+
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', onDragMove, { passive: false });
+                    document.addEventListener('touchend', onDragEnd);
+                } else {
+                    document.addEventListener('mousemove', onDragMove);
+                    document.addEventListener('mouseup', onDragEnd);
+                }
+            }
+
+            function onDragMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+
+                const coords = getClientCoords(e);
+                const dx = coords.x - startX;
+                const dy = coords.y - startY;
+
+                const parentRect = phoneContainer.getBoundingClientRect();
+                const elmRect = elm.getBoundingClientRect();
+
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+
+                const minLeft = 10;
+                const maxLeft = parentRect.width - elmRect.width - 10;
+                const minTop = 10;
+                const maxTop = parentRect.height - elmRect.height - 10;
+
+                newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+                newTop = Math.max(minTop, Math.min(newTop, maxTop));
+
+                elm.style.left = newLeft + 'px';
+                elm.style.top = newTop + 'px';
+            }
+
+            function onDragEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                document.removeEventListener('mousemove', onDragMove);
+                document.removeEventListener('mouseup', onDragEnd);
+                document.removeEventListener('touchmove', onDragMove);
+                document.removeEventListener('touchend', onDragEnd);
+            }
+
+            elm.addEventListener('mousedown', onDragStart);
+            elm.addEventListener('touchstart', onDragStart, { passive: false });
+        }
+
+        makeElementDraggable(document.getElementById('draggableMusic'));
+        makeElementDraggable(document.getElementById('draggableZalo'));
+
+
+        // --- INDEXEDDB & CACHE ẢNH ĐỂ KHẮC PHỤC LỖI DELAY ---
+        let db;
+        const dbName = "ZKAudioDatabase";
+        const storeName = "audioFiles";
+        const imageObjectCache = {}; // Lưu trữ sẵn URL blob ảnh để render siêu mượt không bị delay
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains(storeName)) {
+                        database.createObjectStore(storeName);
+                    }
+                };
+            });
+        }
+
+        function saveFileToDB(key, blobData) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.put(blobData, key);
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function getFileFromDB(key) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(storeName, "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        let currentUser = JSON.parse(localStorage.getItem('zk_current_user')) || null;
+        let registeredUsers = JSON.parse(localStorage.getItem('zk_users')) || [
+            { username: 'Zkdepzai', pass: '12102009', role: 'Admin' },
+            { username: 'MemberTest', pass: '123456', role: 'User' }
+        ];
+        let customItems = JSON.parse(localStorage.getItem('zk_items')) || [
+            { name: 'Aov Mod(No Hack)', desc: '3', date: '7/8', imgKey: '', img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80', link: 'https://zalo.me/0335759558' }
+        ];
+        let keyItems = JSON.parse(localStorage.getItem('zk_keys')) || [{ title: 'Key Vip 24h', link: 'https://zalo.me/0335759558' }];
+        let fileItems = JSON.parse(localStorage.getItem('zk_files')) || [{ title: 'Fix Lag Full Map', link: 'https://zalo.me/0335759558' }];
+        let videoItems = JSON.parse(localStorage.getItem('zk_videos')) || [{ title: 'Hướng dẫn cài đặt chi tiết', link: 'https://youtube.com' }];
+        
+        let playlist = JSON.parse(localStorage.getItem('zk_playlist_meta')) || [
+            { title: 'Lofi Chill', dbKey: 'default_track' }
+        ];
+        let currentTrackIdx = 0;
+        
+        let voicePlaylist = JSON.parse(localStorage.getItem('zk_voice_playlist_meta')) || [];
+        let currentVoiceIdx = 0;
+
+        const myAudio = new Audio();
+        myAudio.crossOrigin = "anonymous";
+
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const mainPlayIcon = document.getElementById('mainPlayIcon');
+        const musicDisc = document.getElementById('musicDisc');
+        const currentMusicTitle = document.getElementById('currentMusicTitle');
+
+        let activeWelcomeAudio = null;
+
+        // Preload trước toàn bộ ảnh từ DB vào bộ nhớ cache để load danh sách mod tức thì không bị delay
+        async function preloadImageCache() {
+            for (let item of customItems) {
+                if (item.imgKey && !imageObjectCache[item.imgKey]) {
+                    const blob = await getFileFromDB(item.imgKey);
+                    if (blob) {
+                        imageObjectCache[item.imgKey] = URL.createObjectURL(blob);
+                    }
+                }
+            }
+        }
+
+        initDB().then(async () => {
+            await preloadImageCache();
+            renderData();
+
+            if (playlist.length > 0) {
+                currentMusicTitle.innerText = playlist[currentTrackIdx].title;
+                const blob = await getFileFromDB(playlist[currentTrackIdx].dbKey);
+                if (blob) {
+                    myAudio.src = URL.createObjectURL(blob);
+                } else if(playlist[currentTrackIdx].dbKey === 'default_track') {
+                    myAudio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+                }
+            }
+            document.getElementById('welcomeStatusSub').innerText = "Hệ thống đã sẵn sàng!";
+            document.getElementById('startWebBtn').style.display = 'inline-block';
+        }).catch(err => {
+            console.error("Lỗi khởi tạo DB:", err);
+            document.getElementById('welcomeStatusSub').innerText = "Lỗi khởi tạo bộ nhớ!";
+            document.getElementById('startWebBtn').style.display = 'inline-block';
+        });
+
+        document.getElementById('startWebBtn').addEventListener('click', async () => {
+            const overlay = document.getElementById('welcomeOverlay');
+            overlay.classList.add('fade-out');
+            setTimeout(() => overlay.remove(), 500);
+
+            playNextVoiceInQueue();
+        });
+
+        async function playNextVoiceInQueue() {
+            if (voicePlaylist.length > 0 && currentVoiceIdx < voicePlaylist.length) {
+                const voiceMeta = voicePlaylist[currentVoiceIdx];
+                const voiceBlob = await getFileFromDB(voiceMeta.dbKey);
+                if (voiceBlob) {
+                    if (activeWelcomeAudio) activeWelcomeAudio.pause();
+                    activeWelcomeAudio = new Audio(URL.createObjectURL(voiceBlob));
+                    activeWelcomeAudio.play().then(() => {
+                        activeWelcomeAudio.onended = () => {
+                            currentVoiceIdx++;
+                            if (currentVoiceIdx < voicePlaylist.length) {
+                                playNextVoiceInQueue();
+                            } else {
+                                startBackgroundMusic();
+                            }
+                        };
+                    }).catch(e => {
+                        startBackgroundMusic();
+                    });
+                } else {
+                    currentVoiceIdx++;
+                    playNextVoiceInQueue();
+                }
+            } else {
+                startBackgroundMusic();
+            }
+        }
+
+        function startBackgroundMusic() {
+            if (playlist.length > 0 && myAudio.src) {
+                myAudio.play().then(() => {
+                    mainPlayIcon.className = 'fa-solid fa-pause';
+                    musicDisc.classList.add('playing');
+                }).catch(err => {
+                    console.log("Trình duyệt chặn autoplay nhạc.");
+                });
+            }
+        }
+
+        currentMusicTitle.addEventListener('click', () => {
+            if (!currentUser || currentUser.role !== 'Admin') {
+                alert("Chỉ Admin mới có quyền đổi tên bài hát!");
+                return;
+            }
+            let newName = prompt("Nhập tên mới cho bài hát:", playlist[currentTrackIdx].title);
+            if (newName && newName.trim() !== "") {
+                playlist[currentTrackIdx].title = newName.trim();
+                currentMusicTitle.innerText = playlist[currentTrackIdx].title;
+                localStorage.setItem('zk_playlist_meta', JSON.stringify(playlist));
+                renderAdminPlaylists();
+                alert("Đổi tên bài hát thành công!");
+            }
+        });
+
+        musicToggleBtn.addEventListener('click', async () => {
+            if (playlist.length === 0 || !myAudio.src) {
+                alert("Danh sách nhạc đang trống!");
+                return;
+            }
+
+            try {
+                if (myAudio.paused) {
+                    await myAudio.play();
+                    mainPlayIcon.className = 'fa-solid fa-pause';
+                    musicDisc.classList.add('playing');
+                } else {
+                    myAudio.pause();
+                    mainPlayIcon.className = 'fa-solid fa-play';
+                    musicDisc.classList.remove('playing');
+                }
+            } catch (error) {
+                console.error("Lỗi phát nhạc:", error);
+            }
+        });
+
+        myAudio.addEventListener('ended', async () => {
+            if (playlist.length > 0) {
+                currentTrackIdx = (currentTrackIdx + 1) % playlist.length;
+                currentMusicTitle.innerText = playlist[currentTrackIdx].title;
+                const blob = await getFileFromDB(playlist[currentTrackIdx].dbKey);
+                if (blob) {
+                    myAudio.src = URL.createObjectURL(blob);
+                    try { await myAudio.play(); } catch (e) {}
+                }
+            }
+        });
+
+        const menuLinks = document.querySelectorAll('.sidebar-menu a[data-page]');
+        const pageViews = document.querySelectorAll('.page-view');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleMenu() {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        }
+
+        document.getElementById('openMenuBtn').addEventListener('click', toggleMenu);
+        document.getElementById('closeMenuBtn').addEventListener('click', toggleMenu);
+        sidebarOverlay.addEventListener('click', toggleMenu);
+
+        menuLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                pageViews.forEach(v => v.classList.remove('active'));
+                document.getElementById(link.getAttribute('data-page')).classList.add('active');
+                toggleMenu();
+            });
+        });
+
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
+        }, 1000);
+
+        const authModal = document.getElementById('authModal');
+        let isLogin = true;
+
+        document.getElementById('openAuthBtn').addEventListener('click', () => authModal.classList.add('active'));
+        document.getElementById('inlineAuthLink')?.addEventListener('click', () => authModal.classList.add('active'));
+        document.getElementById('closeAuthModal').addEventListener('click', () => authModal.classList.remove('active'));
+
+        document.getElementById('switchAuthMode').addEventListener('click', () => {
+            isLogin = !isLogin;
+            document.getElementById('authModalTitle').innerText = isLogin ? "Đăng Nhập" : "Đăng Ký Tài Khoản";
+            document.getElementById('authSubmitBtn').innerText = isLogin ? "Đăng Nhập" : "Đăng Ký";
+            document.getElementById('switchAuthMode').innerText = isLogin ? "Chưa có tài khoản? Đăng ký ngay" : "Đã có tài khoản? Đăng nhập";
+        });
+
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('userInput').value.trim();
+            const p = document.getElementById('passInput').value.trim();
+
+            if (isLogin) {
+                let found = (u.toLowerCase() === 'zkdepzai' && p === '12102009') 
+                    ? { username: 'Zkdepzai', role: 'Admin' } 
+                    : registeredUsers.find(x => x.username.toLowerCase() === u.toLowerCase() && x.pass === p);
+                
+                if (found) {
+                    currentUser = found;
+                    if (currentUser.username.toLowerCase() === 'zkdepzai') currentUser.role = 'Admin';
+                    localStorage.setItem('zk_current_user', JSON.stringify(currentUser));
+                    alert("Đăng nhập thành công!");
+                    authModal.classList.remove('active');
+                    updateUI();
+                } else {
+                    alert("Sai tên đăng nhập hoặc mật khẩu!");
+                }
+            } else {
+                if (registeredUsers.some(x => x.username.toLowerCase() === u.toLowerCase())) {
+                    alert("Tài khoản đã tồn tại!");
+                } else {
+                    registeredUsers.push({ username: u, pass: p, role: 'User' });
+                    localStorage.setItem('zk_users', JSON.stringify(registeredUsers));
+                    alert("Đăng ký thành công! Hãy đăng nhập.");
+                    isLogin = true;
+                }
+            }
+        });
+
+        function updateUI() {
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            const statusCard = document.getElementById('userStatusCard');
+            
+            if (isAdmin) {
+                statusCard.innerHTML = `<span>Admin: <b>${currentUser.username}</b></span> <span style="color: #ef4444; cursor: pointer;" id="logoutBtn">Đăng xuất</span>`;
+                document.getElementById('sidebarUsername').innerText = currentUser.username;
+                document.getElementById('sidebarRole').innerText = 'Quản trị viên tối cao';
+                document.querySelectorAll('.admin-add-btn').forEach(b => b.classList.add('show'));
+                document.getElementById('adminMusicMenuBtn').classList.add('show');
+                document.getElementById('adminViewUsersBtn').classList.add('show');
+            } else if (currentUser) {
+                statusCard.innerHTML = `<span>User: <b>${currentUser.username}</b></span> <span style="color: #ef4444; cursor: pointer;" id="logoutBtn">Đăng xuất</span>`;
+                document.getElementById('sidebarUsername').innerText = currentUser.username;
+                document.getElementById('sidebarRole').innerText = 'Thành viên';
+                document.querySelectorAll('.admin-add-btn').forEach(b => b.classList.remove('show'));
+                document.getElementById('adminMusicMenuBtn').classList.remove('show');
+                document.getElementById('adminViewUsersBtn').classList.remove('show');
+            } else {
+                statusCard.innerHTML = `<span>Tài khoản: <b>Khách</b></span> <span style="color: #60a5fa; cursor: pointer;" id="inlineAuthLink2">Đăng nhập ngay</span>`;
+                document.getElementById('sidebarUsername').innerText = 'Khách';
+                document.getElementById('sidebarRole').innerText = 'Chưa đăng nhập';
+                document.querySelectorAll('.admin-add-btn').forEach(b => b.classList.remove('show'));
+                document.getElementById('adminMusicMenuBtn').classList.remove('show');
+                document.getElementById('adminViewUsersBtn').classList.remove('show');
+                document.getElementById('inlineAuthLink2')?.addEventListener('click', () => authModal.classList.add('active'));
+            }
+
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                currentUser = null;
+                localStorage.removeItem('zk_current_user');
+                updateUI();
+                renderData();
+                alert("Đăng xuất thành công!");
+            });
+
+            renderData();
+        }
+
+        // Render dữ liệu lập tức bằng cache, không gây delay
+        function renderData() {
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+
+            let shopHtml = '', gameHtml = '';
+            for (let i = 0; i < customItems.length; i++) {
+                let item = customItems[i];
+                let imgSrc = item.img || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80';
+                
+                if (item.imgKey && imageObjectCache[item.imgKey]) {
+                    imgSrc = imageObjectCache[item.imgKey];
+                }
+
+                let previewText = item.desc ? item.desc : '3';
+                let dateText = item.date ? item.date : '7/8';
+
+                let card = `
+                    <div class="mod-card">
+                        ${isAdmin ? `<button class="delete-btn-abs show" onclick="deleteItem(${i});">Xóa</button>` : ''}
+                        <div class="mod-left">
+                            <img class="mod-img" src="${imgSrc}">
+                            <div class="mod-info">
+                                <h4>${item.name}</h4>
+                                <div class="mod-sub-info"><span class="dot"></span> Cập nhật ${dateText}</div>
+                                <div class="mod-badges">
+                                    <span class="badge-tag"><i class="fa-brands fa-apple"></i> iOS</span>
+                                    <span class="badge-tag"><i class="fa-solid fa-image"></i> Preview ${previewText}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="${item.link}" target="_blank" class="download-btn-v2" title="Tải xuống">
+                            <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </a>
+                    </div>
+                `;
+                shopHtml += card;
+                gameHtml += card;
+            }
+            document.getElementById('shopListContainer').innerHTML = shopHtml;
+            document.getElementById('gameModListContainer').innerHTML = gameHtml;
+
+            let keyHtml = '';
+            keyItems.forEach(k => keyHtml += `<div class="link-item-box"><span>${k.title}</span><a href="${k.link}" target="_blank">Lấy Key</a></div>`);
+            document.getElementById('keyListContainer').innerHTML = keyHtml;
+
+            let fileHtml = '';
+            fileItems.forEach(f => fileHtml += `<div class="link-item-box"><span>${f.title}</span><a href="${f.link}" target="_blank">Tải File</a></div>`);
+            document.getElementById('fileListContainer').innerHTML = fileHtml;
+
+            let videoHtml = '';
+            videoItems.forEach(v => videoHtml += `<div class="link-item-box"><span>${v.title}</span><a href="${v.link}" target="_blank">Xem</a></div>`);
+            document.getElementById('videoListContainer').innerHTML = videoHtml;
+        }
+
+        window.deleteItem = function(idx) {
+            if (confirm("Xóa mục này?")) {
+                customItems.splice(idx, 1);
+                localStorage.setItem('zk_items', JSON.stringify(customItems));
+                renderData();
+            }
+        }
+
+        const usersModal = document.getElementById('usersModal');
+        document.getElementById('adminViewUsersBtn').addEventListener('click', () => {
+            toggleMenu();
+            renderUsersList();
+            usersModal.classList.add('active');
+        });
+        document.getElementById('closeUsersModal').addEventListener('click', () => usersModal.classList.remove('active'));
+
+        function renderUsersList() {
+            let html = '';
+            if (registeredUsers.length === 0) {
+                html = '<p style="font-size: 13px; color: var(--text-muted);">Chưa có tài khoản nào khác.</p>';
+            } else {
+                registeredUsers.forEach((usr, index) => {
+                    html += `
+                        <div style="background: var(--badge-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <div>
+                                <b>${usr.username}</b> <span style="font-size: 11px; color: #3b82f6;">(${usr.role || 'User'})</span><br>
+                                <span style="font-size: 11px; color: var(--text-muted);">Mật khẩu: ${usr.pass}</span>
+                            </div>
+                            ${usr.username.toLowerCase() !== 'zkdepzai' ? `<button onclick="deleteUser(${index})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Xóa</button>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('usersListContainer').innerHTML = html;
+        }
+
+        window.deleteUser = function(index) {
+            if (confirm("Xóa tài khoản này?")) {
+                registeredUsers.splice(index, 1);
+                localStorage.setItem('zk_users', JSON.stringify(registeredUsers));
+                renderUsersList();
+            }
+        }
+
+        const genModal = document.getElementById('generalModal');
+        let currentActiveType = '';
+
+        document.getElementById('addShopBtn').addEventListener('click', () => { 
+            currentActiveType = 'shop'; 
+            document.getElementById('genImageContainer').style.display = 'block';
+            genModal.classList.add('active'); 
+        });
+        document.getElementById('addKeyBtn').addEventListener('click', () => { 
+            currentActiveType = 'key'; 
+            document.getElementById('genImageContainer').style.display = 'none';
+            genModal.classList.add('active'); 
+        });
+        document.getElementById('addFileBtn').addEventListener('click', () => { 
+            currentActiveType = 'file'; 
+            document.getElementById('genImageContainer').style.display = 'none';
+            genModal.classList.add('active'); 
+        });
+        document.getElementById('addVideoBtn').addEventListener('click', () => { 
+            currentActiveType = 'video'; 
+            document.getElementById('genImageContainer').style.display = 'none';
+            genModal.classList.add('active'); 
+        });
+        document.getElementById('closeGenModal').addEventListener('click', () => genModal.classList.remove('active'));
+
+        document.getElementById('genImageFile').addEventListener('change', (e) => {
+            const files = e.target.files;
+            document.getElementById('genImageNameDisplay').innerText = files.length > 0 ? `Đã chọn: ${files[0].name}` : "chưa chọn ảnh";
+        });
+
+        document.getElementById('saveGenBtn').addEventListener('click', async () => {
+            let t = document.getElementById('genTitle').value.trim();
+            let d = document.getElementById('genDesc').value.trim();
+            let dt = document.getElementById('genDate').value.trim();
+            let l = document.getElementById('genLink').value.trim();
+            if (!t || !l) return alert("Vui lòng điền đủ thông tin!");
+
+            if (currentActiveType === 'shop') {
+                let imgKey = '';
+                const imageInput = document.getElementById('genImageFile');
+                if (imageInput.files && imageInput.files.length > 0) {
+                    const file = imageInput.files[0];
+                    imgKey = 'img_' + Date.now();
+                    await saveFileToDB(imgKey, file);
+                    imageObjectCache[imgKey] = URL.createObjectURL(file); // Lưu vào cache ngay lập tức
+                }
+                customItems.push({ name: t, desc: d || '3', date: dt || '7/8', imgKey: imgKey, link: l });
+                localStorage.setItem('zk_items', JSON.stringify(customItems));
+                imageInput.value = '';
+                document.getElementById('genImageNameDisplay').innerText = "chưa chọn ảnh";
+            } else if (currentActiveType === 'key') {
+                keyItems.push({ title: t, link: l });
+                localStorage.setItem('zk_keys', JSON.stringify(keyItems));
+            } else if (currentActiveType === 'file') {
+                fileItems.push({ title: t, link: l });
+                localStorage.setItem('zk_files', JSON.stringify(fileItems));
+            } else if (currentActiveType === 'video') {
+                videoItems.push({ title: t, link: l });
+                localStorage.setItem('zk_videos', JSON.stringify(videoItems));
+            }
+
+            document.getElementById('genTitle').value = '';
+            document.getElementById('genDesc').value = '';
+            document.getElementById('genDate').value = '';
+            document.getElementById('genLink').value = '';
+
+            genModal.classList.remove('active');
+            renderData();
+            alert("Thêm thành công!");
+        });
+
+        const musicModal = document.getElementById('musicModal');
+        document.getElementById('adminMusicMenuBtn').addEventListener('click', () => { 
+            toggleMenu(); 
+            renderAdminPlaylists();
+            musicModal.classList.add('active'); 
+        });
+        document.getElementById('closeMusicModal').addEventListener('click', () => musicModal.classList.remove('active'));
+
+        document.getElementById('audioFileInput').addEventListener('change', (e) => {
+            const files = e.target.files;
+            document.getElementById('audioFileNameDisplay').innerText = files.length > 0 ? `Đã chọn ${files.length} tệp` : "chưa chọn tệp nào";
+        });
+
+        document.getElementById('welcomeVoiceFileInput').addEventListener('change', (e) => {
+            const files = e.target.files;
+            document.getElementById('voiceFileNameDisplay').innerText = files.length > 0 ? `Đã chọn ${files.length} tệp` : "chưa chọn tệp nào";
+        });
+
+        function renderAdminPlaylists() {
+            let musicContainer = document.getElementById('adminPlaylistContainer');
+            if (playlist.length === 0) {
+                musicContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 5px;">Chưa có tệp nhạc</div>';
+            } else {
+                let html = '';
+                playlist.forEach((track, idx) => {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid var(--border-color); font-size: 11px;">
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">${idx + 1}. ${track.title}</span>
+                            <button onclick="removeTrack(${idx})" style="background: #ef4444; color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Xóa</button>
+                        </div>
+                    `;
+                });
+                musicContainer.innerHTML = html;
+            }
+
+            let voiceContainer = document.getElementById('adminVoiceListContainer');
+            if (voicePlaylist.length === 0) {
+                voiceContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 5px;">Chưa có tệp giọng</div>';
+            } else {
+                let htmlVoice = '';
+                voicePlaylist.forEach((v, idx) => {
+                    htmlVoice += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid var(--border-color); font-size: 11px;">
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">${idx + 1}. ${v.title}</span>
+                            <button onclick="removeVoiceTrack(${idx})" style="background: #ef4444; color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Xóa</button>
+                        </div>
+                    `;
+                });
+                voiceContainer.innerHTML = htmlVoice;
+            }
+        }
+
+        window.removeTrack = function(idx) {
+            if (confirm("Xóa bài hát này?")) {
+                playlist.splice(idx, 1);
+                localStorage.setItem('zk_playlist_meta', JSON.stringify(playlist));
+                renderAdminPlaylists();
+                if (playlist.length > 0) {
+                    currentTrackIdx = 0;
+                    currentMusicTitle.innerText = playlist[currentTrackIdx].title;
+                } else {
+                    currentMusicTitle.innerText = "Chưa có nhạc";
+                }
+            }
+        }
+
+        window.removeVoiceTrack = function(idx) {
+            if (confirm("Xóa tệp giọng nói này?")) {
+                voicePlaylist.splice(idx, 1);
+                localStorage.setItem('zk_voice_playlist_meta', JSON.stringify(voicePlaylist));
+                renderAdminPlaylists();
+            }
+        }
+
+        document.getElementById('saveAllAudioBtn').addEventListener('click', async () => {
+            const musicInput = document.getElementById('audioFileInput');
+            const voiceInput = document.getElementById('welcomeVoiceFileInput');
+
+            const hasMusicFiles = musicInput.files && musicInput.files.length > 0;
+            const hasVoiceFiles = voiceInput.files && voiceInput.files.length > 0;
+
+            if (!hasMusicFiles && !hasVoiceFiles) {
+                alert("Vui lòng chọn tệp nhạc hoặc giọng nói!");
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveAllAudioBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerText = "Đang lưu tệp...";
+
+            try {
+                if (hasMusicFiles) {
+                    for (let i = 0; i < musicInput.files.length; i++) {
+                        const file = musicInput.files[i];
+                        const dbKey = 'music_' + Date.now() + '_' + i;
+                        await saveFileToDB(dbKey, file);
+                        playlist.push({ title: file.name.replace(/\.[^/.]+$/, ""), dbKey: dbKey });
+                    }
+                    localStorage.setItem('zk_playlist_meta', JSON.stringify(playlist));
+                    
+                    if (playlist.length > 0 && myAudio.paused) {
+                        currentTrackIdx = playlist.length - 1;
+                        const blob = await getFileFromDB(playlist[currentTrackIdx].dbKey);
+                        if (blob) {
+                            myAudio.src = URL.createObjectURL(blob);
+                            currentMusicTitle.innerText = playlist[currentTrackIdx].title;
+                        }
+                    }
+                }
+
+                if (hasVoiceFiles) {
+                    for (let j = 0; j < voiceInput.files.length; j++) {
+                        const voiceFile = voiceInput.files[j];
+                        const dbKey = 'voice_' + Date.now() + '_' + j;
+                        await saveFileToDB(dbKey, voiceFile);
+                        voicePlaylist.push({ title: voiceFile.name.replace(/\.[^/.]+$/, ""), dbKey: dbKey });
+                    }
+                    localStorage.setItem('zk_voice_playlist_meta', JSON.stringify(voicePlaylist));
+                    currentVoiceIdx = 0;
+                }
+
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Lưu Tất Cả Cấu Hình";
+                musicModal.classList.remove('active');
+                renderAdminPlaylists();
+                alert("Đã lưu thành công!");
+            } catch (err) {
+                console.error("Lỗi lưu:", err);
+                alert("Lỗi khi lưu tệp vào bộ nhớ!");
+                saveBtn.disabled, saveBtn.disabled = false;
+                saveBtn.innerText = "Lưu Tất Cả Cấu Hình";
+            }
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>
